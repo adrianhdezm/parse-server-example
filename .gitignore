@@ -1,0 +1,18 @@
+# Logs
+logs
+*.log
+npm-debug.log*
+
+# IDEs
+.idea
+.vscode
+*~
+
+# OS files
+.DS_Store
+
+# Local Volumes
+db
+
+# Environment Variables
+.env

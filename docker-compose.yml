@@ -1,0 +1,76 @@
+version: '3'
+services:
+  nginx:
+    image: nginx:1.17.7
+    depends_on:
+      - api
+    ports:
+      - ${SERVER_PORT}:${SERVER_PORT}
+    environment:
+      - SERVER_HOST=${SERVER_HOST}
+      - SERVER_PORT=${SERVER_PORT}
+      - API_SERVER_URL=http://api:1337/api
+      - GRAPHQL_SERVER_URL=http://api:1337/graphql
+      - DASHBOARD_SERVER_URL=http://dashboard:4040/dashboard
+    command: /bin/bash -c "envsubst < /etc/nginx/nginx.conf.default > /etc/nginx/nginx.conf && nginx -g 'daemon off;'"
+    volumes:
+      - ./www:/usr/share/nginx/html
+      - ./logs/nginx:/var/log/nginx/log
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf.default
+    restart: always
+  dashboard:
+    image: parseplatform/parse-dashboard:2.0.5
+    depends_on:
+      - api
+    ports:
+      - 4040:4040
+    environment:
+      - HOST=dashboard
+      - PORT=4040
+      - MOUNT_PATH=/dashboard
+      - PARSE_DASHBOARD_ALLOW_INSECURE_HTTP=true
+      - 'PARSE_DASHBOARD_CONFIG={
+        "apps": [{
+        "serverURL": "http://${SERVER_HOST}:${SERVER_PORT}/api",
+        "graphQLServerURL": "http://${SERVER_HOST}:${SERVER_PORT}/graphql",
+        "appId": "${APPLICATION_ID}",
+        "masterKey": "${MASTER_KEY}",
+        "appName": "MyApp"
+        }],
+        "users": [{
+        "user": "${PARSE_DASHBOARD_USER}",
+        "pass": "${PARSE_DASHBOARD_PASSWORD}"
+        }],
+        "iconsFolder": "icons",
+        "useEncryptedPasswords": false
+        }'
+    restart: always
+  api:
+    image: parseplatform/parse-server:3.10.0
+    depends_on:
+      - db
+    ports:
+      - 1337:1337
+    environment:
+      - PARSE_SERVER_HOST=api
+      - PORT=1337
+      - PARSE_SERVER_MOUNT_PATH=/api
+      - PARSE_SERVER_GRAPHQL_PATH=/graphql
+      - PARSE_SERVER_URL=http://${SERVER_HOST}:${SERVER_PORT}/api
+      - PARSE_SERVER_APPLICATION_ID=${APPLICATION_ID}
+      - PARSE_SERVER_MASTER_KEY=${MASTER_KEY}
+      - PARSE_SERVER_APP_NAME=MyApp
+      - PARSE_SERVER_CLOUD=/parse-server/cloud/main.js
+      - PARSE_SERVER_DATABASE_URI=mongodb://db:27017/myappdb
+      - PARSE_SERVER_MOUNT_GRAPHQL=true
+      - PARSE_SERVER_MAX_UPLOAD_SIZE=256mb
+    volumes:
+      - ./cloud:/parse-server/cloud
+    restart: always
+  db:
+    image: mongo:4.2.2
+    ports:
+      - 27017:27017
+    volumes:
+      - ./db:/data/db
+    restart: always
