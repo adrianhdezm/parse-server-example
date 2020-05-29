@@ -12,7 +12,9 @@ npm-debug.log*
 .DS_Store
 
 # Local Volumes
-db
+volumes
 
 # Environment Variables
 .env
+node_modules
+dist
