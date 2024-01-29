@@ -1,0 +1,4 @@
+/api/logs
+/db
+.env
+web/logs
