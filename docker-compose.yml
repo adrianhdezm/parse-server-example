@@ -24,6 +24,8 @@ services:
       - './web/www:/usr/share/nginx/html'
       - './web/logs:/var/log/nginx/log'
       - './web/config/nginx.conf:/etc/nginx/nginx.conf.default'
+      - './web/cert/${SERVER_HOST}.pem:/etc/nginx/${SERVER_HOST}.pem'
+      - './web/cert/${SERVER_HOST}-key.pem:/etc/nginx/${SERVER_HOST}-key.pem'
     restart: always
     depends_on:
       - api
@@ -37,8 +39,8 @@ services:
       - PORT=1337
       - PARSE_SERVER_MOUNT_PATH=/api
       - PARSE_SERVER_GRAPHQL_PATH=/graphql
-      - PARSE_SERVER_URL=http://${SERVER_HOST}:${SERVER_PORT}/api
-      - PARSE_PUBLIC_SERVER_URL=http://${SERVER_HOST}:${SERVER_PORT}/api
+      - PARSE_SERVER_URL=https://${SERVER_HOST}/api
+      - PARSE_PUBLIC_SERVER_URL=https://${SERVER_HOST}/api
       - PARSE_SERVER_APPLICATION_ID=${APP_ID}
       - PARSE_SERVER_MASTER_KEY=${APP_MASTER_KEY}
       - PARSE_SERVER_APP_NAME=${APP_NAME}
@@ -64,8 +66,8 @@ services:
       - PORT=4040
       - MOUNT_PATH=/dashboard
       - PARSE_DASHBOARD_ALLOW_INSECURE_HTTP=true
-      - PARSE_DASHBOARD_SERVER_URL=http://${SERVER_HOST}:${SERVER_PORT}/api
-      - PARSE_DASHBOARD_GRAPHQL_SERVER_URL=http://${SERVER_HOST}:${SERVER_PORT}/graphql
+      - PARSE_DASHBOARD_SERVER_URL=https://${SERVER_HOST}/api
+      - PARSE_DASHBOARD_GRAPHQL_SERVER_URL=https://${SERVER_HOST}/graphql
       - PARSE_DASHBOARD_MASTER_KEY=${APP_MASTER_KEY}
       - PARSE_DASHBOARD_APP_ID=${APP_ID}
       - PARSE_DASHBOARD_APP_NAME=${APP_NAME}

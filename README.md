@@ -1,8 +1,15 @@
 # parse-server-example
 
-Parse Server Example using docker-compose
+Parse Server Example with SSL using docker-compose
 
 ## Prerequisites
+
+Make sure the following folders are created with writing rights enabled or create them using :
+mkdir ./db
+mkdir ./db/data
+mkdir ./db/logs
+mkdir ./api/logs
+mkdir ./web/logs
 
 ### Environment variables
 
@@ -19,3 +26,8 @@ PARSE_DASHBOARD_USER=admin
 PARSE_DASHBOARD_USE_ENCRYPTED_PASSWORD=false
 PARSE_DASHBOARD_PASSWORD=secretpassword
 ```
+### SSL certificates
+
+Create SSL certificates and store them in the following folder:
+mkdir ./web/cert
+
