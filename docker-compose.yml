@@ -24,8 +24,8 @@ services:
       - './web/www:/usr/share/nginx/html'
       - './web/logs:/var/log/nginx/log'
       - './web/config/nginx.conf:/etc/nginx/nginx.conf.default'
-      - './web/cert/${SERVER_HOST}.pem:/etc/nginx/${SERVER_HOST}.pem'
-      - './web/cert/${SERVER_HOST}-key.pem:/etc/nginx/${SERVER_HOST}-key.pem'
+      - '/etc/letsencrypt/live/${SERVER_HOST}fullchain.pem:/etc/nginx/${SERVER_HOST}.pem'
+      - '/etc/letsencrypt/live/${SERVER_HOST}privkey.pem:/etc/nginx/${SERVER_HOST}-key.pem'
     restart: always
     depends_on:
       - api
