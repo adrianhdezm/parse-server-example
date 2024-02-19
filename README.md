@@ -1,6 +1,6 @@
 # parse-server-example
 
-Parse Server Example with SSL using docker-compose
+Parse Server Example with SSL and File System Storage using docker-compose
 
 ## Prerequisites
 
