@@ -34,3 +34,9 @@ If you are deploying the server on the internet replace the SERVER_HOST=localhos
 
 Create SSL certificates using Certbot (https://certbot.eff.org/) instructions and modify docker-compose.yml file accordinly.
 
+###  File System Storage Adapter
+
+Make sure the following folder is created with writing rights enabled (All parse-server instances need to be able to read and write to the same storage) 
+```
+mkdir ./api/files
+```
