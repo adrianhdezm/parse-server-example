@@ -40,3 +40,4 @@ Make sure the following folder is created with writing rights enabled (All parse
 ```
 mkdir ./api/files
 ```
+Note: Enable File upload by public to avoid errors
