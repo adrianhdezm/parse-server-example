@@ -51,6 +51,7 @@ services:
       - PARSE_SERVER_ALLOW_CLIENT_CLASS_CREATION=false
       - PARSE_SERVER_MASTER_KEY_IPS=0.0.0.0/0,::0
       - PARSE_SERVER_FILES_ADAPTER="@parse/fs-files-adapter"
+      - PARSE_SERVER_FILE_UPLOAD_OPTIONS='{"enableForPublic":true}'
       - VERBOSE=true
     volumes:
       - './api/cloud:/parse-server/cloud'
