@@ -48,7 +48,7 @@ services:
       - PARSE_SERVER_DATABASE_URI=mongodb://db:27017/${APP_DB_NAME}
       - PARSE_SERVER_MOUNT_GRAPHQL=true
       - PARSE_SERVER_MAX_UPLOAD_SIZE=256mb
-      - PARSE_SERVER_ALLOW_CLIENT_CLASS_CREATION=false
+      - PARSE_SERVER_ALLOW_CLIENT_CLASS_CREATION=true
       - PARSE_SERVER_MASTER_KEY_IPS=0.0.0.0/0,::0
       - PARSE_SERVER_FILES_ADAPTER="@parse/fs-files-adapter"
       - PARSE_SERVER_FILE_UPLOAD_OPTIONS={"fileExtensions":[".*"],"enableForAnonymousUser":true,"enableForAuthenticatedUser":true,"enableForPublic":true}
