@@ -1,5 +1,6 @@
 // parseConfig.js
    import Parse from 'parse';
 
-   Parse.initialize('yourAppId', 'yourJavascriptKey');
-   Parse.serverURL = 'yourParseServerURL';
+   // Initialize Parse with your Parse Server information ('yourAppId', 'yourJavascriptKey', 'yourMasterKey')
+   Parse.initialize('appid', 'secretappkey', 'secretappkey');
+   Parse.serverURL = 'https://localhost/api';
