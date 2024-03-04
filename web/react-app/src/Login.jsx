@@ -1,7 +1,7 @@
    // Login.js
    import React, { useState } from 'react';
    import Parse from 'parse';
-   import parseConfig from './parseConfig';
+   import parseConfig from '../parseConfig';
 
    Parse.setAsyncStorage(window.localStorage);
 

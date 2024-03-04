@@ -1,3 +1,4 @@
+/*
 import { useState } from 'react'
 import reactLogo from './assets/react.svg'
 import viteLogo from '/vite.svg'
@@ -33,3 +34,18 @@ function App() {
 }
 
 export default App
+*/
+   // App.js
+   import React from 'react';
+   import Login from './Login';
+
+   function App() {
+     return (
+       <div>
+         <h1>Vite Parse Login</h1>
+         <Login />
+       </div>
+     );
+   }
+
+   export default App;
