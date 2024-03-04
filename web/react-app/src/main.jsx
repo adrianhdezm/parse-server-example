@@ -4,6 +4,6 @@ import './index.css'
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
-    <h1>Hello React App</h1>
+    <h1 className="text-3xl font-bold underline">Hello React App</h1>
   </React.StrictMode>,
 )
