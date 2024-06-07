@@ -41,3 +41,14 @@ Make sure the following folder is created with writing rights enabled (All parse
 mkdir ./api/files
 ```
 Note: Enable File upload by public to avoid errors
+
+### Maintenance during deploy
+
+Keep the size of log files (for example: /var/lib/docker/containers/*/*-json.log) below a default limit or delete them after reaching that size. For example, list files larger than 100MB:
+```
+find / -size +100MB -ls
+```
+To delete the mentioned log file you can use the command:
+```
+truncate -s 0 /var/lib/docker/containers/*/*-json.log
+```
