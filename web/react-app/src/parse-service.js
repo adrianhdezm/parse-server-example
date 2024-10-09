@@ -1,4 +1,4 @@
-import { parseConfig } from "./parse-config";
+import Parse from 'parse';
 
 export async function parseLogin(username, password) {
   try {
