@@ -5,8 +5,8 @@ set -e
 
 echo "🏗️ Building React application..."
 
-# Navigate to react-app directory
-cd "$(dirname "$0")/../web/react-app"
+# Navigate to web-app directory
+cd "$(dirname "$0")/../web/app"
 
 # Install dependencies if needed
 if [ ! -d "node_modules" ]; then

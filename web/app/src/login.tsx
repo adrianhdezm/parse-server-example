@@ -12,7 +12,13 @@ export function Login() {
   const handleLogin = async (e: FormEvent) => {
     e.preventDefault();
     try {
-      const user = await Parse.User.logIn(username, password);
+      const user = (await Parse.User.logIn(
+        username,
+        password
+      )) as unknown as Parse.User<Parse.Attributes> | null;
+      if (!user) {
+        throw new Error("Login failed");
+      }
       setCurrentUser(user); // update global auth state
       console.log("User logged in:", user);
     } catch (err) {
