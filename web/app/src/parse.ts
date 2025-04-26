@@ -1,16 +1,29 @@
 import Parse from "parse/dist/parse.min.js";
 
-function getMetaContent(name: string): string {
+function getMetaContent(name: string, defaultValue: string): string {
   const meta = document.querySelector(`meta[name="${name}"]`);
   if (!meta) {
-    throw new Error(`Meta tag ${name} not found`);
+    return defaultValue;
   }
-  return meta.getAttribute("content") || "";
+  const content = meta.getAttribute("content");
+
+  if (
+    !content ||
+    content === "APP_ID_TO_BE_ADDED" ||
+    content === "PARSE_SERVER_URL_TO_BE_ADDED"
+  ) {
+    return defaultValue;
+  }
+
+  return content;
 }
 
-const appId = getMetaContent("parse-app-id");
-const jsKey = getMetaContent("parse-javascript-key");
-const serverUrl = getMetaContent("parse-server-url");
+const defaultAppId = "appid";
+const defaultServerUrl = "http://localhost:8085/api";
+
+const appId = getMetaContent("parse-app-id", defaultAppId);
+const jsKey = getMetaContent("parse-javascript-key", "");
+const serverUrl = getMetaContent("parse-server-url", defaultServerUrl);
 
 Parse.initialize(appId, jsKey);
 Parse.serverURL = serverUrl;
