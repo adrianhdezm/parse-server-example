@@ -32,7 +32,7 @@ echo "🔄 Updating Parse app ID in index.html..."
 # Use sed to replace both the app ID and server URL in index.html
 sed -i '' \
     -e "s|content=\"APP_ID_TO_BE_ADDED\"|content=\"$APP_ID\"|" \
-    -e "s|content=\"PARSE_SERVER_URL_TO_BE_ADDED\"|content=\"$PARSE_SERVER_URL\"|" \
+    -e "s|content=\"PARSE_SERVER_API_URL_TO_BE_ADDED\"|content=\"$PARSE_SERVER_API_URL\"|" \
     ../www/index.html
 
 echo "✅ Update completed successfully!"
