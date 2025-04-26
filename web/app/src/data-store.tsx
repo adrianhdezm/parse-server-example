@@ -188,9 +188,26 @@ export default function DataStore() {
     );
   }
 
+  async function handleLogout() {
+    try {
+      await Parse.User.logOut();
+      window.location.reload(); // Puedes hacer window.location.href = '/login' si tienes rutas
+    } catch (err) {
+      console.error("Logout failed", err);
+    }
+  }
+
   return (
     <div className="max-w-7xl mx-auto mt-10 p-6">
-      <h2 className="text-2xl font-semibold mb-6">DataStore Records</h2>
+      <header className="flex justify-between items-center mb-6">
+        <h2 className="text-2xl font-semibold mb-6">DataStore Records</h2>
+        <button
+          onClick={handleLogout}
+          className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded"
+        >
+          Logout
+        </button>
+      </header>
 
       {/* Upload CSV */}
       <div className="mb-6">
@@ -214,7 +231,7 @@ export default function DataStore() {
           <thead>
             <tr className="bg-gray-100">
               {Object.keys(records[0] || {}).map((key) => (
-                <th key={key} className="border p-2">
+                <th key={key} className="border p-2 text-left">
                   {key}
                 </th>
               ))}
@@ -222,9 +239,13 @@ export default function DataStore() {
           </thead>
           <tbody>
             {records.map((record) => (
-              <tr key={record.id} className="text-center">
+              <tr key={record.id} className="text-center h-12">
                 {Object.values(record).map((value, idx) => (
-                  <td key={idx} className="border p-2">
+                  <td
+                    key={idx}
+                    className="border p-2 overflow-hidden text-ellipsis whitespace-nowrap max-w-[200px]"
+                    title={value as string} // Para mostrar tooltip completo al pasar el mouse
+                  >
                     {value}
                   </td>
                 ))}
