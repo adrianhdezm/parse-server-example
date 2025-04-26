@@ -11,6 +11,8 @@
     "deploy": "../../scripts/update-app.sh"
   },
   "dependencies": {
+    "@types/parse": "^3.0.9",
+    "parse": "^6.1.1",
     "react": "^19.0.0",
     "react-dom": "^19.0.0"
   },
