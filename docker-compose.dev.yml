@@ -1,0 +1,80 @@
+services:
+  db:
+    platform: linux/x86_64
+    image: "mongo:4.4.29"
+    ports:
+      - "27017:27017"
+    volumes:
+      - "./db/data:/data/db"
+      - "./db/logs:/var/log/mongodb/mongod.log"
+    command: ["--logpath", "/var/log/mongodb/mongod.log/mongodb.log"]
+    restart: always
+  proxy:
+    image: nginx:1.17.7
+    ports:
+      - "${SERVER_PORT}:${SERVER_PORT}"
+    environment:
+      - SERVER_HOST=${SERVER_HOST}
+      - SERVER_PORT=${SERVER_PORT}
+      - API_SERVER_URL=http://api:1337/api
+      - GRAPHQL_SERVER_URL=http://api:1337/graphql
+      - DASHBOARD_SERVER_URL=http://dashboard:4040/dashboard
+    command: /bin/bash -c "envsubst < /etc/nginx/nginx.conf.default > /etc/nginx/nginx.conf && nginx -g 'daemon off;'"
+    volumes:
+      - "./web/www:/usr/share/nginx/html"
+      - "./web/logs:/var/log/nginx/log"
+      - "./web/config/nginx.local.conf:/etc/nginx/nginx.conf.default"
+    restart: always
+    depends_on:
+      - api
+  api:
+    platform: linux/x86_64
+    image: "parseplatform/parse-server:6.3.1"
+    depends_on:
+      - db
+    ports:
+      - 1337:1337
+    environment:
+      - PORT=1337
+      - PARSE_SERVER_MOUNT_PATH=/api
+      - PARSE_SERVER_GRAPHQL_PATH=/graphql
+      - PARSE_SERVER_URL=http://${SERVER_HOST}:${SERVER_PORT}/api
+      - PARSE_PUBLIC_SERVER_URL=http://${SERVER_HOST}:${SERVER_PORT}/api
+      - PARSE_SERVER_APPLICATION_ID=${APP_ID}
+      - PARSE_SERVER_MASTER_KEY=${APP_MASTER_KEY}
+      - PARSE_SERVER_APP_NAME=${APP_NAME}
+      - PARSE_SERVER_CLOUD=/parse-server/cloud/main.js
+      - PARSE_SERVER_DATABASE_URI=mongodb://db:27017/${APP_DB_NAME}
+      - PARSE_SERVER_MOUNT_GRAPHQL=true
+      - PARSE_SERVER_MAX_UPLOAD_SIZE=256mb
+      - PARSE_SERVER_ALLOW_CLIENT_CLASS_CREATION=true
+      - PARSE_SERVER_MASTER_KEY_IPS=0.0.0.0/0,::0
+      - PARSE_SERVER_FILES_ADAPTER="@parse/fs-files-adapter"
+      - PARSE_SERVER_FILE_UPLOAD_OPTIONS={"fileExtensions":[".*"],"enableForAnonymousUser":true,"enableForAuthenticatedUser":true,"enableForPublic":true}
+      - PARSE_SERVER_PRESERVE_FILE_NAME=true
+      - VERBOSE=true
+    volumes:
+      - "./api/cloud:/parse-server/cloud"
+      - "./api/logs:/parse-server/logs"
+      - "./api/files:/parse-server/files"
+    restart: always
+  dashboard:
+    platform: linux/x86_64
+    image: "parseplatform/parse-dashboard:5.3.0"
+    depends_on:
+      - api
+    ports:
+      - "4040:4040"
+    environment:
+      - HOST=dashboard
+      - PORT=4040
+      - MOUNT_PATH=/dashboard
+      - PARSE_DASHBOARD_ALLOW_INSECURE_HTTP=true
+      - PARSE_DASHBOARD_SERVER_URL=http://${SERVER_HOST}:${SERVER_PORT}/api
+      - PARSE_DASHBOARD_GRAPHQL_SERVER_URL=http://${SERVER_HOST}:${SERVER_PORT}/graphql
+      - PARSE_DASHBOARD_MASTER_KEY=${APP_MASTER_KEY}
+      - PARSE_DASHBOARD_APP_ID=${APP_ID}
+      - PARSE_DASHBOARD_APP_NAME=${APP_NAME}
+      - PARSE_DASHBOARD_USER_ID=${PARSE_DASHBOARD_USER}
+      - PARSE_DASHBOARD_USER_PASSWORD=${PARSE_DASHBOARD_PASSWORD}
+    restart: always
