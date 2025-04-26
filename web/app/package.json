@@ -12,6 +12,7 @@
   },
   "dependencies": {
     "@types/parse": "^3.0.9",
+    "papaparse": "^5.5.2",
     "parse": "^6.1.1",
     "react": "^19.0.0",
     "react-dom": "^19.0.0"
@@ -19,6 +20,7 @@
   "devDependencies": {
     "@eslint/js": "^9.22.0",
     "@tailwindcss/vite": "^4.1.4",
+    "@types/papaparse": "^5.3.15",
     "@types/react": "^19.0.10",
     "@types/react-dom": "^19.0.4",
     "@vitejs/plugin-react": "^4.3.4",

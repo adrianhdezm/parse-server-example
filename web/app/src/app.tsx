@@ -1,6 +1,7 @@
 import { useContext } from "react";
 import { AuthContext } from "./auth-context";
 import { Login } from "./login";
+import CustomerList from "./customer-list";
 
 export function App() {
   const { currentUser } = useContext(AuthContext);
@@ -9,5 +10,5 @@ export function App() {
     return <Login />;
   }
 
-  return <h1 className="text-3xl font-bold underline">Hello world!</h1>;
+  return <CustomerList />;
 }
