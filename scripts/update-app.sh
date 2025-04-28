@@ -3,10 +3,19 @@
 # Exit on any error
 set -e
 
-echo "🏗️ Building React application..."
+# Determine project root (one level up from this scripts folder)
+ROOT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
+echo "🔧 Project root directory: $ROOT_DIR"
 
-# Navigate to web-app directory
-cd "$(dirname "$0")/../web/app"
+# Define key paths
+APP_DIR="$ROOT_DIR/web/app"
+WWW_DIR="$ROOT_DIR/web/www"
+ENV_FILE="$ROOT_DIR/.env"
+
+echo "🏗️ Building React application in $APP_DIR..."
+
+# Navigate to react-app directory
+cd "$APP_DIR"
 
 # Install dependencies if needed
 if [ ! -d "node_modules" ]; then
@@ -17,22 +26,22 @@ fi
 # Build the React app
 npm run build
 
-echo "🗑️ Cleaning www directory..."
+echo "🗑️ Cleaning www directory at $WWW_DIR..."
 # Clean the www directory (preserve the directory itself)
-rm -rf ../www/*
+rm -rf "$WWW_DIR"/*
 
-echo "📋 Copying build files to www directory..."
+echo "📋 Copying build files to $WWW_DIR..."
 # Copy all files from dist to www
-cp -r dist/* ../www/
+cp -r dist/* "$WWW_DIR"/
 
-# Get APP_ID from .env file (using source to load env vars)
-source ../../.env
+# Load environment variables
+source "$ENV_FILE"
 
-echo "🔄 Updating Parse app ID in index.html..."
-# Use sed to replace both the app ID and server URL in index.html
+echo "🔄 Updating Parse config in $WWW_DIR/index.html..."
+# Replace APP_ID and server URL placeholders
 sed -i '' \
     -e "s|content=\"APP_ID_TO_BE_ADDED\"|content=\"$APP_ID\"|" \
     -e "s|content=\"PARSE_SERVER_API_URL_TO_BE_ADDED\"|content=\"$PARSE_SERVER_API_URL\"|" \
-    ../www/index.html
+    "$WWW_DIR/index.html"
 
 echo "✅ Update completed successfully!"
