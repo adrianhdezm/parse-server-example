@@ -89,10 +89,27 @@ export default function DataStore() {
     dispatch({ type: "FETCH_START" });
     try {
       const DataStore = Parse.Object.extend(state.recordClassName);
-      const query = new Parse.Query(DataStore);
-      const results = await query.find();
+      const records = [];
+      let hasMore = true;
+      let skip = 0;
+      const limit = 1000; // Número máximo por página
 
-      const parsedRecords: DataStoreType[] = results.map((record) => {
+      while (hasMore) {
+        const query = new Parse.Query(DataStore);
+        query.limit(limit);
+        query.skip(skip);
+        const results = await query.find();
+
+        records.push(...results);
+
+        if (results.length < limit) {
+          hasMore = false; // Ya no quedan más resultados
+        } else {
+          skip += limit; // Saltar a la siguiente página
+        }
+      }
+
+      const parsedRecords: DataStoreType[] = records.map((record) => {
         const parsedRecord: Record<string, string> = {
           id: record.id || "",
           createdAt: record.createdAt?.toISOString() || "",
@@ -117,12 +134,6 @@ export default function DataStore() {
     if (!file) return;
 
     try {
-      const DataStore = Parse.Object.extend(state.recordClassName);
-      const query = new Parse.Query(DataStore);
-      const existingRecords = await query.find();
-      const deletePromises = existingRecords.map((record) => record.destroy());
-      await Promise.all(deletePromises);
-
       const text = await file.text();
       const parsed = Papa.parse(text, { header: true, skipEmptyLines: true });
 
@@ -131,10 +142,20 @@ export default function DataStore() {
       }
 
       const recordsData = parsed.data as DataStoreType[];
-
       dispatch({ type: "UPDATE_START", payload: recordsData.length });
 
+      // First, delete all records in the DataStore
+
+      for (const record of state.records) {
+        const recordToDelete = new Parse.Object(state.recordClassName);
+        recordToDelete.id = record.id;
+        await recordToDelete.destroy();
+      }
+
+      // Then, upload the new records
+
       let completed = 0;
+      const DataStore = Parse.Object.extend(state.recordClassName);
       for (const recordData of recordsData) {
         const record = new DataStore();
         Object.entries(recordData).forEach(([key, value]) => {
