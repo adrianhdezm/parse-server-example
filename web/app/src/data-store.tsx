@@ -141,7 +141,11 @@ export default function DataStore() {
       for (const recordData of recordsData) {
         const record = new DataStore();
         Object.entries(recordData).forEach(([key, value]) => {
-          record.set(key, value);
+          if (key === "id") {
+            record.set("ID", value);
+          } else {
+            record.set(key, value);
+          }
         });
         await record.save();
       }
