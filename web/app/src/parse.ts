@@ -28,4 +28,8 @@ const serverUrl = getMetaContent("parse-server-url", defaultServerUrl);
 Parse.initialize(appId, jsKey);
 Parse.serverURL = serverUrl;
 
+export const RECORD_CLASS_NAME = "DataStore";
+export const RECORD_PROPERTIES =
+  "company1, no1, company, tel0, tel1, tel2, tel3, tel, id3, no, mail1, zip1, zip, address1, URL, XML, longitude, latitude, ido, mail, ID, address, keido, lat, lon, geolocation, active, hp1, map, hp0, hp, id1, id2, hpmail1, hpmail2, hpmail, program1, program, download, com2, com";
+
 export default Parse;

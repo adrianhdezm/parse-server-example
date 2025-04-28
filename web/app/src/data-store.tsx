@@ -1,13 +1,10 @@
 // src/components/DataStore.tsx
 import { useEffect, useReducer, ChangeEvent } from "react";
-import Parse from "./parse";
+import Parse, { RECORD_CLASS_NAME, RECORD_PROPERTIES } from "./parse";
 import Papa from "papaparse";
 import { DataStoreType } from "./models";
 
 type StatusType = "idle" | "loading" | "updating" | "success" | "error";
-const RECORD_CLASS_NAME = "DataStore";
-const RECORD_PROPERTIES =
-  "company1, no1, company, tel0, tel1, tel2, tel3, tel, id3, no, mail1, zip1, zip, address1, URL, XML, longitude, latitude, ido, mail, ID, address, keido, lat, lon, geolocation, active, hp1, map, hp0, hp, id1, id2, hpmail1, hpmail2, hpmail, program1, program, download, com2, com";
 
 interface DataStoreState {
   records: DataStoreType[];
