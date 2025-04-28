@@ -10,7 +10,7 @@ function getMetaContent(name: string, defaultValue: string): string {
   if (
     !content ||
     content === "APP_ID_TO_BE_ADDED" ||
-    content === "PARSE_SERVER_URL_TO_BE_ADDED"
+    content === "PARSE_SERVER_API_URL_TO_BE_ADDED"
   ) {
     return defaultValue;
   }

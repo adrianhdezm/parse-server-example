@@ -10,15 +10,18 @@ interface DataStoreState {
   records: DataStoreType[];
   status: StatusType;
   error: string;
+  uploadProgress: number;
+  uploadTotal: number;
 }
 
 type Action =
   | { type: "FETCH_START" }
-  | { type: "UPDATE_START" }
+  | { type: "UPDATE_START"; payload: number }
   | { type: "FETCH_SUCCESS"; payload: DataStoreType[] }
   | { type: "UPDATE_SUCCESS"; payload: DataStoreType[] }
   | { type: "FETCH_ERROR"; payload: string }
-  | { type: "UPDATE_ERROR"; payload: string };
+  | { type: "UPDATE_ERROR"; payload: string }
+  | { type: "UPLOAD_PROGRESS_UPDATE"; payload: number };
 
 // Reducer
 function dataStoreReducer(
@@ -29,11 +32,31 @@ function dataStoreReducer(
     case "FETCH_START":
       return { ...state, status: "loading", error: "" };
     case "UPDATE_START":
-      return { ...state, status: "updating", error: "" };
+      return {
+        ...state,
+        status: "updating",
+        error: "",
+        uploadProgress: 0,
+        uploadTotal: action.payload,
+      };
+    case "UPLOAD_PROGRESS_UPDATE":
+      return { ...state, uploadProgress: action.payload };
     case "FETCH_SUCCESS":
-      return { records: action.payload, status: "idle", error: "" };
+      return {
+        records: action.payload,
+        status: "idle",
+        error: "",
+        uploadProgress: 0,
+        uploadTotal: 0,
+      };
     case "UPDATE_SUCCESS":
-      return { records: action.payload, status: "success", error: "" };
+      return {
+        records: action.payload,
+        status: "success",
+        error: "",
+        uploadProgress: 100,
+        uploadTotal: action.payload.length,
+      };
     case "FETCH_ERROR":
     case "UPDATE_ERROR":
       return { ...state, status: "error", error: action.payload };
@@ -48,6 +71,8 @@ export default function DataStore() {
     records: [],
     status: "idle",
     error: "",
+    uploadProgress: 0,
+    uploadTotal: 0,
   });
 
   useEffect(() => {
@@ -121,8 +146,6 @@ export default function DataStore() {
     if (!file) return;
 
     try {
-      dispatch({ type: "UPDATE_START" });
-
       const DataStore = Parse.Object.extend("DataStore");
       const query = new Parse.Query(DataStore);
       const existingRecords = await query.find();
@@ -136,8 +159,11 @@ export default function DataStore() {
         throw new Error("Error parsing CSV file");
       }
 
-      const recordsData = parsed.data as Record<string, string>[];
+      const recordsData = parsed.data as DataStoreType[];
 
+      dispatch({ type: "UPDATE_START", payload: recordsData.length });
+
+      let completed = 0;
       for (const recordData of recordsData) {
         const record = new DataStore();
         Object.entries(recordData).forEach(([key, value]) => {
@@ -148,9 +174,14 @@ export default function DataStore() {
           }
         });
         await record.save();
+        completed++;
+        dispatch({
+          type: "UPLOAD_PROGRESS_UPDATE",
+          payload: completed,
+        });
       }
 
-      await fetchDataStore();
+      dispatch({ type: "UPDATE_SUCCESS", payload: recordsData });
     } catch (err) {
       const message =
         err instanceof Error ? err.message : "Failed to upload records";
@@ -160,27 +191,62 @@ export default function DataStore() {
 
   const { records, status, error } = state;
 
+  const updateProgressPercent = Math.round(
+    (state.uploadProgress / state.uploadTotal) * 100
+  );
+
+  async function handleLogout() {
+    try {
+      await Parse.User.logOut();
+      window.location.reload(); // Puedes hacer window.location.href = '/login' si tienes rutas
+    } catch (err) {
+      console.error("Logout failed", err);
+    }
+  }
+
   if (status === "loading") {
-    return <div className="text-center mt-10">Loading records...</div>;
+    return (
+      <div className="max-w-7xl h-screen mx-auto mt-10 p-6 flex flex-col items-center justify-center gap-4">
+        <div className="text-center mt-10">Loading records...</div>
+      </div>
+    );
   }
 
   if (status === "updating") {
     return (
-      <div className="text-center mt-10">
-        Uploading CSV and updating records...
+      <div className="max-w-7xl h-screen mx-auto mt-10 p-6 flex flex-col items-center justify-center gap-4">
+        <div className="flex items-center justify-center w-2xl">
+          <span>Uploading</span>
+          <div className="w-12 ml-1">{updateProgressPercent} %</div>
+          <span className="ml-2">(</span>
+          <div className="w-11 flex justify-end">{state.uploadProgress}</div>
+          <span className="mx-2">/</span>
+          <div className="w-12">{state.uploadTotal}</div>
+          <span>) objects</span>
+        </div>
+        <div className="w-full max-w-md mx-auto bg-gray-200 rounded-full h-4 overflow-hidden">
+          <div
+            className="bg-blue-500 h-4"
+            style={{ width: `${updateProgressPercent}%` }}
+          />
+        </div>
       </div>
     );
   }
 
   if (status === "error") {
-    return <div className="text-center text-red-500 mt-10">{error}</div>;
+    return (
+      <div className="max-w-7xl h-screen mx-auto mt-10 p-6 flex flex-col items-center justify-center gap-2">
+        <div className="text-center text-red-500 mt-10">{error}</div>
+      </div>
+    );
   }
 
   if (status === "success") {
     return (
-      <div className="text-center mt-10 space-y-4">
+      <div className="max-w-7xl h-screen mx-auto mt-10 p-6 flex flex-col items-center justify-center gap-2">
         <div className="text-green-600 text-xl font-semibold">
-          ✅ Records uploaded successfully!
+          ✅ {state.records.length} Records uploaded successfully!
         </div>
         <button
           onClick={fetchDataStore}
@@ -190,15 +256,6 @@ export default function DataStore() {
         </button>
       </div>
     );
-  }
-
-  async function handleLogout() {
-    try {
-      await Parse.User.logOut();
-      window.location.reload(); // Puedes hacer window.location.href = '/login' si tienes rutas
-    } catch (err) {
-      console.error("Logout failed", err);
-    }
   }
 
   return (
