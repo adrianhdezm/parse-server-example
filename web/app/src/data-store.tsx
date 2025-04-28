@@ -5,9 +5,14 @@ import Papa from "papaparse";
 import { DataStoreType } from "./models";
 
 type StatusType = "idle" | "loading" | "updating" | "success" | "error";
+const RECORD_CLASS_NAME = "DataStore";
+const RECORD_PROPERTIES =
+  "company1, no1, company, tel0, tel1, tel2, tel3, tel, id3, no, mail1, zip1, zip, address1, URL, XML, longitude, latitude, ido, mail, ID, address, keido, lat, lon, geolocation, active, hp1, map, hp0, hp, id1, id2, hpmail1, hpmail2, hpmail, program1, program, download, com2, com";
 
 interface DataStoreState {
   records: DataStoreType[];
+  recordClassName: string;
+  recordProps: string[];
   status: StatusType;
   error: string;
   uploadProgress: number;
@@ -43,6 +48,7 @@ function dataStoreReducer(
       return { ...state, uploadProgress: action.payload };
     case "FETCH_SUCCESS":
       return {
+        ...state,
         records: action.payload,
         status: "idle",
         error: "",
@@ -51,6 +57,7 @@ function dataStoreReducer(
       };
     case "UPDATE_SUCCESS":
       return {
+        ...state,
         records: action.payload,
         status: "success",
         error: "",
@@ -69,6 +76,8 @@ function dataStoreReducer(
 export default function DataStore() {
   const [state, dispatch] = useReducer(dataStoreReducer, {
     records: [],
+    recordClassName: RECORD_CLASS_NAME,
+    recordProps: RECORD_PROPERTIES.split(",").map((prop) => prop.trim()),
     status: "idle",
     error: "",
     uploadProgress: 0,
@@ -82,56 +91,21 @@ export default function DataStore() {
   async function fetchDataStore() {
     dispatch({ type: "FETCH_START" });
     try {
-      const DataStore = Parse.Object.extend("DataStore");
+      const DataStore = Parse.Object.extend(state.recordClassName);
       const query = new Parse.Query(DataStore);
       const results = await query.find();
 
-      const parsedRecords: DataStoreType[] = results.map((record) => ({
-        id: record.id || "",
-        createdAt: record.createdAt?.toISOString() || "",
-        updatedAt: record.updatedAt?.toISOString() || "",
-        company1: record.get("company1") || "",
-        no1: record.get("no1") || "",
-        company: record.get("company") || "",
-        tel0: record.get("tel0") || "",
-        tel1: record.get("tel1") || "",
-        tel2: record.get("tel2") || "",
-        tel3: record.get("tel3") || "",
-        tel: record.get("tel") || "",
-        id3: record.get("id3") || "",
-        no: record.get("no") || "",
-        mail1: record.get("mail1") || "",
-        zip1: record.get("zip1") || "",
-        zip: record.get("zip") || "",
-        address1: record.get("address1") || "",
-        URL: record.get("URL") || "",
-        XML: record.get("XML") || "",
-        longitude: record.get("longitude") || "",
-        latitude: record.get("latitude") || "",
-        ido: record.get("ido") || "",
-        mail: record.get("mail") || "",
-        ID: record.get("ID") || "",
-        address: record.get("address") || "",
-        keido: record.get("keido") || "",
-        lat: record.get("lat") || "",
-        lon: record.get("lon") || "",
-        geolocation: record.get("geolocation") || "",
-        active: record.get("active") || "",
-        hp1: record.get("hp1") || "",
-        map: record.get("map") || "",
-        hp0: record.get("hp0") || "",
-        hp: record.get("hp") || "",
-        id1: record.get("id1") || "",
-        id2: record.get("id2") || "",
-        hpmail1: record.get("hpmail1") || "",
-        hpmail2: record.get("hpmail2") || "",
-        hpmail: record.get("hpmail") || "",
-        program1: record.get("program1") || "",
-        program: record.get("program") || "",
-        download: record.get("download") || "",
-        com2: record.get("com2") || "",
-        com: record.get("com") || "",
-      }));
+      const parsedRecords: DataStoreType[] = results.map((record) => {
+        const parsedRecord: Record<string, string> = {
+          id: record.id || "",
+          createdAt: record.createdAt?.toISOString() || "",
+          updatedAt: record.updatedAt?.toISOString() || "",
+        };
+        state.recordProps.forEach((prop) => {
+          parsedRecord[prop] = record.get(prop) || "";
+        });
+        return parsedRecord as unknown as DataStoreType;
+      });
 
       dispatch({ type: "FETCH_SUCCESS", payload: parsedRecords });
     } catch (err) {
@@ -146,7 +120,7 @@ export default function DataStore() {
     if (!file) return;
 
     try {
-      const DataStore = Parse.Object.extend("DataStore");
+      const DataStore = Parse.Object.extend(state.recordClassName);
       const query = new Parse.Query(DataStore);
       const existingRecords = await query.find();
       const deletePromises = existingRecords.map((record) => record.destroy());
