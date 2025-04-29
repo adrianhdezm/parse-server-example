@@ -24,19 +24,19 @@ import Parse from "@/parse";
 
 // Centralized text for easy translation
 const TEXT = {
-  managerTitle: (name: string) => `${name} Manager`,
-  logout: "Logout",
-  loadingData: "Loading data...",
-  totalObjects: (name: string) => `Total ${name} Objects`,
-  failedToLoadData: "Failed to load data",
-  uploadingRecords: "Uploading records...",
-  progressLabel: (done: number, total: number) => `${done} of ${total}`,
-  uploadCompleteTitle: "Upload Complete",
+  managerTitle: (name: string) => `${name} マネージャー`, // `${name} Manager`
+  logout: "ログアウト", // Logout
+  loadingData: "データを読み込み中...", // Loading data...
+  totalObjects: (name: string) => `${name} オブジェクト合計`, // `Total ${name} Objects`
+  failedToLoadData: "データの読み込みに失敗しました", // Failed to load data
+  uploadingRecords: "レコードをアップロード中...", // Uploading records...
+  progressLabel: (done: number, total: number) => `${done} / ${total}`, // `${done} of ${total}`
+  uploadCompleteTitle: "アップロード完了", // Upload Complete
   previousAndNewCount: (prev: number, next: number) =>
-    `Previous count: ${prev} → New count: ${next}`,
-  errorTitle: "Error",
-  uploadCsvFile: "Upload CSV File",
-  uploading: "Uploading...",
+    `前回の件数: ${prev} → 新しい件数: ${next}`, // `Previous count: ${prev} → New count: ${next}`
+  errorTitle: "エラー", // Error
+  uploadCsvFile: "CSVファイルをアップロード", // Upload CSV File
+  uploading: "アップロード中...", // Uploading...
 };
 
 // Types

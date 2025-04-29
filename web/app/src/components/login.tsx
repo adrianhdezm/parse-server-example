@@ -17,28 +17,28 @@ import { Button } from "@/components/ui/button";
 
 // Text constants for translation
 const TEXT = {
-  pageTitle: "Login",
-  pageDescription: "Enter your credentials to access your account",
+  pageTitle: "ログイン", // Login
+  pageDescription: "アカウントにアクセスするために認証情報を入力してください", // Enter your credentials to access your account
   form: {
     username: {
-      label: "Username",
-      placeholder: "Enter your username",
+      label: "ユーザー名", // Username
+      placeholder: "ユーザー名を入力してください", // Enter your username
     },
     password: {
-      label: "Password",
-      placeholder: "Enter your password",
+      label: "パスワード", // Password
+      placeholder: "パスワードを入力してください", // Enter your password
     },
-    forgotPassword: "Forgot password?",
-    submitButton: "Login",
-    loggingIn: "Logging in...",
+    forgotPassword: "パスワードをお忘れですか？", // Forgot password?
+    submitButton: "ログイン", // Login
+    loggingIn: "ログイン中...", // Logging in...
   },
   footer: {
-    noAccount: "Don't have an account?",
-    signUp: "Sign up",
+    noAccount: "アカウントをお持ちでないですか？", // Don't have an account?
+    signUp: "サインアップ", // Sign up
   },
   errors: {
-    invalidCredentials: "Invalid username or password.",
-    unknown: "An unknown error occurred.",
+    invalidCredentials: "ユーザー名またはパスワードが正しくありません。", // Invalid username or password.
+    unknown: "不明なエラーが発生しました。", // An unknown error occurred.
   },
 };
 
