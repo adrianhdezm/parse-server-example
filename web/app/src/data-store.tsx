@@ -4,7 +4,13 @@ import Parse, { RECORD_CLASS_NAME, RECORD_PROPERTIES } from "./parse";
 import Papa from "papaparse";
 import { DataStoreType } from "./models";
 
-type StatusType = "idle" | "loading" | "updating" | "success" | "error";
+type StatusType =
+  | "idle"
+  | "loading"
+  | "deleting"
+  | "updating"
+  | "success"
+  | "error";
 
 interface DataStoreState {
   records: DataStoreType[];
@@ -14,16 +20,22 @@ interface DataStoreState {
   error: string;
   uploadProgress: number;
   uploadTotal: number;
+  deleteProgress: number;
+  deleteTotal: number;
 }
 
 type Action =
   | { type: "FETCH_START" }
-  | { type: "UPDATE_START"; payload: number }
   | { type: "FETCH_SUCCESS"; payload: DataStoreType[] }
-  | { type: "UPDATE_SUCCESS"; payload: DataStoreType[] }
   | { type: "FETCH_ERROR"; payload: string }
+  | { type: "UPDATE_START"; payload: number }
+  | { type: "UPDATE_SUCCESS"; payload: DataStoreType[] }
   | { type: "UPDATE_ERROR"; payload: string }
-  | { type: "UPLOAD_PROGRESS_UPDATE"; payload: number };
+  | { type: "UPLOAD_PROGRESS_UPDATE"; payload: number }
+  | { type: "DELETE_START"; payload: number }
+  | { type: "DELETE_PROGRESS_UPDATE"; payload: number }
+  | { type: "DELETE_SUCCESS" }
+  | { type: "DELETE_ERROR"; payload: string };
 
 // Reducer
 function dataStoreReducer(
@@ -33,6 +45,11 @@ function dataStoreReducer(
   switch (action.type) {
     case "FETCH_START":
       return { ...state, status: "loading", error: "" };
+    case "FETCH_SUCCESS":
+      return { ...state, records: action.payload, status: "idle", error: "" };
+    case "FETCH_ERROR":
+      return { ...state, status: "error", error: action.payload };
+
     case "UPDATE_START":
       return {
         ...state,
@@ -43,15 +60,6 @@ function dataStoreReducer(
       };
     case "UPLOAD_PROGRESS_UPDATE":
       return { ...state, uploadProgress: action.payload };
-    case "FETCH_SUCCESS":
-      return {
-        ...state,
-        records: action.payload,
-        status: "idle",
-        error: "",
-        uploadProgress: 0,
-        uploadTotal: 0,
-      };
     case "UPDATE_SUCCESS":
       return {
         ...state,
@@ -61,9 +69,30 @@ function dataStoreReducer(
         uploadProgress: 100,
         uploadTotal: action.payload.length,
       };
-    case "FETCH_ERROR":
     case "UPDATE_ERROR":
       return { ...state, status: "error", error: action.payload };
+
+    case "DELETE_START":
+      return {
+        ...state,
+        status: "deleting",
+        error: "",
+        deleteProgress: 0,
+        deleteTotal: action.payload,
+      };
+    case "DELETE_PROGRESS_UPDATE":
+      return { ...state, deleteProgress: action.payload };
+    case "DELETE_SUCCESS":
+      return {
+        ...state,
+        status: "idle",
+        error: "",
+        deleteProgress: 0,
+        deleteTotal: 0,
+      };
+    case "DELETE_ERROR":
+      return { ...state, status: "error", error: action.payload };
+
     default:
       return state;
   }
@@ -79,6 +108,8 @@ export default function DataStore() {
     error: "",
     uploadProgress: 0,
     uploadTotal: 0,
+    deleteProgress: 0,
+    deleteTotal: 0,
   });
 
   useEffect(() => {
@@ -135,48 +166,66 @@ export default function DataStore() {
 
     try {
       const text = await file.text();
-      const parsed = Papa.parse(text, { header: true, skipEmptyLines: true });
+      const parsed = Papa.parse(text, {
+        header: true,
+        skipEmptyLines: true,
+      });
 
       if (parsed.errors.length > 0) {
         throw new Error("Error parsing CSV file");
       }
-
       const recordsData = parsed.data as DataStoreType[];
-      dispatch({ type: "UPDATE_START", payload: recordsData.length });
+      try {
+        dispatch({ type: "DELETE_START", payload: state.records.length });
 
-      // First, delete all records in the DataStore
+        let deleted = 0;
+        for (const record of state.records) {
+          const recordToDelete = new Parse.Object(state.recordClassName);
+          recordToDelete.id = record.id;
+          await recordToDelete.destroy();
+          deleted++;
+          dispatch({ type: "DELETE_PROGRESS_UPDATE", payload: deleted });
+        }
 
-      for (const record of state.records) {
-        const recordToDelete = new Parse.Object(state.recordClassName);
-        recordToDelete.id = record.id;
-        await recordToDelete.destroy();
+        dispatch({ type: "DELETE_SUCCESS" });
+      } catch (err) {
+        const message =
+          err instanceof Error ? err.message : "Failed to delete records";
+        dispatch({ type: "DELETE_ERROR", payload: message });
       }
 
-      // Then, upload the new records
+      try {
+        // After deleting, we can start the upload process
+        dispatch({ type: "UPDATE_START", payload: recordsData.length });
 
-      let completed = 0;
-      const DataStore = Parse.Object.extend(state.recordClassName);
-      for (const recordData of recordsData) {
-        const record = new DataStore();
-        Object.entries(recordData).forEach(([key, value]) => {
-          if (key === "id") {
-            record.set("ID", value);
-          } else {
-            record.set(key, value);
-          }
-        });
-        await record.save();
-        completed++;
-        dispatch({
-          type: "UPLOAD_PROGRESS_UPDATE",
-          payload: completed,
-        });
+        let completed = 0;
+        const DataStore = Parse.Object.extend(state.recordClassName);
+        for (const recordData of recordsData) {
+          const record = new DataStore();
+          Object.entries(recordData).forEach(([key, value]) => {
+            if (key === "id") {
+              record.set("ID", value);
+            } else {
+              record.set(key, value);
+            }
+          });
+          await record.save();
+          completed++;
+          dispatch({
+            type: "UPLOAD_PROGRESS_UPDATE",
+            payload: completed,
+          });
+        }
+
+        dispatch({ type: "UPDATE_SUCCESS", payload: recordsData });
+      } catch (err) {
+        const message =
+          err instanceof Error ? err.message : "Failed to upload records";
+        dispatch({ type: "UPDATE_ERROR", payload: message });
       }
-
-      dispatch({ type: "UPDATE_SUCCESS", payload: recordsData });
     } catch (err) {
       const message =
-        err instanceof Error ? err.message : "Failed to upload records";
+        err instanceof Error ? err.message : "Failed to read file";
       dispatch({ type: "UPDATE_ERROR", payload: message });
     }
   }
@@ -185,6 +234,10 @@ export default function DataStore() {
 
   const updateProgressPercent = Math.round(
     (state.uploadProgress / state.uploadTotal) * 100
+  );
+
+  const deleteProgressPercent = Math.round(
+    (state.deleteProgress / state.deleteTotal) * 100
   );
 
   async function handleLogout() {
@@ -200,6 +253,28 @@ export default function DataStore() {
     return (
       <div className="max-w-7xl h-screen mx-auto mt-10 p-6 flex flex-col items-center justify-center gap-4">
         <div className="text-center mt-10">Loading records...</div>
+      </div>
+    );
+  }
+
+  if (status === "deleting") {
+    return (
+      <div className="max-w-7xl h-screen mx-auto mt-10 p-6 flex flex-col items-center justify-center gap-4">
+        <div className="flex items-center justify-center w-2xl">
+          <span>Deleting</span>
+          <div className="w-12 ml-1">{deleteProgressPercent} %</div>
+          <span className="ml-2">(</span>
+          <div className="w-11 flex justify-end">{state.deleteProgress}</div>
+          <span className="mx-2">/</span>
+          <div className="w-12">{state.deleteTotal}</div>
+          <span>) objects</span>
+        </div>
+        <div className="w-full max-w-md mx-auto bg-gray-200 rounded-full h-4 overflow-hidden">
+          <div
+            className="bg-red-500 h-4"
+            style={{ width: `${deleteProgressPercent}%` }}
+          />
+        </div>
       </div>
     );
   }
