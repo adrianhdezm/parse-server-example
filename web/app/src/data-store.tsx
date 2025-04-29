@@ -216,7 +216,7 @@ export default function DataStore() {
 
     try {
       const text = await file.text();
-      const parsed = Papa.parse(text, {
+      const parsed = Papa.parse<DataStoreType>(text, {
         header: true,
         skipEmptyLines: true,
       });
@@ -224,7 +224,8 @@ export default function DataStore() {
       if (parsed.errors.length > 0) {
         throw new Error("Error parsing CSV file");
       }
-      const recordsData = parsed.data as DataStoreType[];
+      const recordsData = parsed.data;
+
       try {
         dispatch({ type: "DELETE_START", payload: state.records.length });
         await DataStoreService.deleteRecords(
