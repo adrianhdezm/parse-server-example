@@ -22,6 +22,23 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Progress } from "@/components/ui/progress";
 import Parse from "@/parse";
 
+// Centralized text for easy translation
+const TEXT = {
+  managerTitle: (name: string) => `${name} Manager`,
+  logout: "Logout",
+  loadingData: "Loading data...",
+  totalObjects: (name: string) => `Total ${name} Objects`,
+  failedToLoadData: "Failed to load data",
+  uploadingRecords: "Uploading records...",
+  progressLabel: (done: number, total: number) => `${done} of ${total}`,
+  uploadCompleteTitle: "Upload Complete",
+  previousAndNewCount: (prev: number, next: number) =>
+    `Previous count: ${prev} → New count: ${next}`,
+  errorTitle: "Error",
+  uploadCsvFile: "Upload CSV File",
+  uploading: "Uploading...",
+};
+
 // Types
 type Status =
   | "idle"
@@ -111,7 +128,6 @@ export function Upload() {
 
   const fetchCount = async () => {
     dispatch({ type: "FETCH_START" });
-
     try {
       const total = await DataStoreService.countRecords(state.recordClassName);
       dispatch({ type: "FETCH_SUCCESS", payload: total });
@@ -156,7 +172,10 @@ export function Upload() {
           state.recordClassName,
           recordsData,
           (progress: number) => {
-            dispatch({ type: "UPLOAD_PROGRESS_UPDATE", payload: progress });
+            dispatch({
+              type: "UPLOAD_PROGRESS_UPDATE",
+              payload: progress,
+            });
           }
         );
         dispatch({ type: "UPLOAD_SUCCESS", payload: recordsData.length });
@@ -178,7 +197,7 @@ export function Upload() {
   async function handleLogout() {
     try {
       await Parse.User.logOut();
-      window.location.reload(); // Puedes hacer window.location.href = '/login' si tienes rutas
+      window.location.reload();
     } catch (err) {
       console.error("Logout failed", err);
     }
@@ -200,9 +219,9 @@ export function Upload() {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <Database className="h-5 w-5 text-primary" />
-              <CardTitle>{state.recordClassName} Manager</CardTitle>
+              <CardTitle>{TEXT.managerTitle(state.recordClassName)}</CardTitle>
             </div>
-            <Button onClick={handleLogout}>Logout</Button>
+            <Button onClick={handleLogout}>{TEXT.logout}</Button>
           </div>
         </CardHeader>
 
@@ -212,19 +231,21 @@ export function Upload() {
             {isLoading ? (
               <div className="flex flex-col items-center gap-2">
                 <RefreshCw className="h-6 w-6 animate-spin text-muted-foreground" />
-                <p className="text-sm text-muted-foreground">Loading data...</p>
+                <p className="text-sm text-muted-foreground">
+                  {TEXT.loadingData}
+                </p>
               </div>
             ) : state.count !== null ? (
               <div className="flex flex-col items-center">
                 <span className="text-3xl font-bold">{state.count}</span>
                 <span className="text-sm text-muted-foreground">
-                  Total {state.recordClassName} Objects
+                  {TEXT.totalObjects(state.recordClassName)}
                 </span>
               </div>
             ) : state.error ? (
               <div className="flex flex-col items-center gap-1 text-destructive">
                 <AlertCircle className="h-6 w-6" />
-                <span className="text-sm">Failed to load data</span>
+                <span className="text-sm">{TEXT.failedToLoadData}</span>
               </div>
             ) : null}
           </div>
@@ -233,9 +254,9 @@ export function Upload() {
           {isUpdating && (
             <div className="space-y-2">
               <div className="flex justify-between text-sm">
-                <span>Uploading records...</span>
+                <span>{TEXT.uploadingRecords}</span>
                 <span>
-                  {state.uploadProgress} of {state.uploadTotal}
+                  {TEXT.progressLabel(state.uploadProgress, state.uploadTotal)}
                 </span>
               </div>
               <Progress value={progressPercentage} className="h-2" />
@@ -249,14 +270,10 @@ export function Upload() {
               className="bg-green-50 text-green-800 dark:bg-green-900/20 dark:text-green-400 border-green-200 dark:border-green-900"
             >
               <CheckCircle className="h-4 w-4" />
-              <AlertTitle>Upload Complete</AlertTitle>
+              <AlertTitle>{TEXT.uploadCompleteTitle}</AlertTitle>
               <AlertDescription className="text-sm">
-                {state.previousCount !== null && (
-                  <>
-                    Previous count: {state.previousCount} → New count:{" "}
-                    {state.count}
-                  </>
-                )}
+                {state.previousCount !== null &&
+                  TEXT.previousAndNewCount(state.previousCount, state.count!)}
               </AlertDescription>
             </Alert>
           )}
@@ -265,7 +282,7 @@ export function Upload() {
           {state.error && state.status === "error" && (
             <Alert variant="destructive">
               <AlertCircle className="h-4 w-4" />
-              <AlertTitle>Error</AlertTitle>
+              <AlertTitle>{TEXT.errorTitle}</AlertTitle>
               <AlertDescription className="text-sm">
                 {state.error}
               </AlertDescription>
@@ -289,7 +306,7 @@ export function Upload() {
                 className="flex items-center justify-center gap-2 cursor-pointer"
               >
                 <FileUp className="h-4 w-4" />
-                {isUpdating ? "Uploading..." : "Upload CSV File"}
+                {isUpdating ? TEXT.uploading : TEXT.uploadCsvFile}
                 {isDeleting && (
                   <span className="ml-2">
                     <RefreshCw className="h-3 w-3 animate-spin inline-block" />
