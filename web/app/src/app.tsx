@@ -1,7 +1,7 @@
 import { useContext } from "react";
 import { AuthContext } from "./auth-context";
-import { Login } from "./login";
-import DataStore from "./data-store";
+import { Login } from "@/components/login";
+import { Upload } from "@/components/upload";
 
 export function App() {
   const { currentUser } = useContext(AuthContext);
@@ -10,5 +10,5 @@ export function App() {
     return <Login />;
   }
 
-  return <DataStore />;
+  return <Upload />;
 }

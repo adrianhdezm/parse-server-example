@@ -1,4 +1,5 @@
-import { DataStoreType } from "./models";
+import { DataStoreType } from "../models";
+import Parse from "../parse";
 
 export class DataStoreService {
   static async fetchAllData(
@@ -39,19 +40,20 @@ export class DataStoreService {
     });
   }
 
-  static async deleteRecords(
-    recordClassName: string,
-    records: DataStoreType[],
-    onProgress: (progress: number) => void
-  ): Promise<void> {
-    const DataStore = Parse.Object.extend(recordClassName);
-    let completed = 0;
-    for (const record of records) {
-      const recordToDelete = new DataStore();
-      recordToDelete.id = record.id;
-      await recordToDelete.destroy();
-      completed++;
-      onProgress(completed);
+  static async countRecords(recordClassName: string): Promise<number> {
+    const query = new Parse.Query(recordClassName);
+    const count = await query.count();
+    return count;
+  }
+
+  static async deleteRecords(recordClassName: string): Promise<void> {
+    const response = await Parse.Cloud.run("deleteAll", {
+      className: recordClassName,
+    });
+    if (response && response.status === "success") {
+      console.log(`All records in ${recordClassName} deleted successfully.`);
+    } else {
+      console.error(`Failed to delete records in ${recordClassName}.`);
     }
   }
 
