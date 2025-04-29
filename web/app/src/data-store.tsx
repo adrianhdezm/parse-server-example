@@ -4,6 +4,84 @@ import Parse, { RECORD_CLASS_NAME, RECORD_PROPERTIES } from "./parse";
 import Papa from "papaparse";
 import { DataStoreType } from "./models";
 
+class DataStoreService {
+  static async fetchDataStore(
+    recordClassName: string,
+    recordProps: string[]
+  ): Promise<DataStoreType[]> {
+    const DataStore = Parse.Object.extend(recordClassName);
+    const records = [];
+    let hasMore = true;
+    let skip = 0;
+    const limit = 1000; // Número máximo por página
+
+    while (hasMore) {
+      const query = new Parse.Query(DataStore);
+      query.limit(limit);
+      query.skip(skip);
+      const results = await query.find();
+
+      records.push(...results);
+
+      if (results.length < limit) {
+        hasMore = false; // Ya no quedan más resultados
+      } else {
+        skip += limit; // Saltar a la siguiente página
+      }
+    }
+
+    return records.map((record) => {
+      const parsedRecord: Record<string, string> = {
+        id: record.id || "",
+        createdAt: record.createdAt?.toISOString() || "",
+        updatedAt: record.updatedAt?.toISOString() || "",
+      };
+      recordProps.forEach((prop) => {
+        parsedRecord[prop] = record.get(prop) || "";
+      });
+      return parsedRecord as unknown as DataStoreType;
+    });
+  }
+
+  static async deleteRecords(
+    recordClassName: string,
+    records: DataStoreType[],
+    onProgress: (progress: number) => void
+  ): Promise<void> {
+    const DataStore = Parse.Object.extend(recordClassName);
+    let completed = 0;
+    for (const record of records) {
+      const recordToDelete = new DataStore();
+      recordToDelete.id = record.id;
+      await recordToDelete.destroy();
+      completed++;
+      onProgress(completed);
+    }
+  }
+
+  static async uploadRecords(
+    recordClassName: string,
+    recordsData: DataStoreType[],
+    onProgress: (progress: number) => void
+  ): Promise<void> {
+    const DataStore = Parse.Object.extend(recordClassName);
+    let completed = 0;
+    for (const recordData of recordsData) {
+      const record = new DataStore();
+      Object.entries(recordData).forEach(([key, value]) => {
+        if (key === "id") {
+          record.set("ID", value);
+        } else {
+          record.set(key, value);
+        }
+      });
+      await record.save();
+      completed++;
+      onProgress(completed);
+    }
+  }
+}
+
 type StatusType =
   | "idle"
   | "loading"
@@ -119,40 +197,12 @@ export default function DataStore() {
   async function fetchDataStore() {
     dispatch({ type: "FETCH_START" });
     try {
-      const DataStore = Parse.Object.extend(state.recordClassName);
-      const records = [];
-      let hasMore = true;
-      let skip = 0;
-      const limit = 1000; // Número máximo por página
+      const records = await DataStoreService.fetchDataStore(
+        state.recordClassName,
+        state.recordProps
+      );
 
-      while (hasMore) {
-        const query = new Parse.Query(DataStore);
-        query.limit(limit);
-        query.skip(skip);
-        const results = await query.find();
-
-        records.push(...results);
-
-        if (results.length < limit) {
-          hasMore = false; // Ya no quedan más resultados
-        } else {
-          skip += limit; // Saltar a la siguiente página
-        }
-      }
-
-      const parsedRecords: DataStoreType[] = records.map((record) => {
-        const parsedRecord: Record<string, string> = {
-          id: record.id || "",
-          createdAt: record.createdAt?.toISOString() || "",
-          updatedAt: record.updatedAt?.toISOString() || "",
-        };
-        state.recordProps.forEach((prop) => {
-          parsedRecord[prop] = record.get(prop) || "";
-        });
-        return parsedRecord as unknown as DataStoreType;
-      });
-
-      dispatch({ type: "FETCH_SUCCESS", payload: parsedRecords });
+      dispatch({ type: "FETCH_SUCCESS", payload: records });
     } catch (err) {
       const message =
         err instanceof Error ? err.message : "Failed to load records";
@@ -177,15 +227,13 @@ export default function DataStore() {
       const recordsData = parsed.data as DataStoreType[];
       try {
         dispatch({ type: "DELETE_START", payload: state.records.length });
-
-        let deleted = 0;
-        for (const record of state.records) {
-          const recordToDelete = new Parse.Object(state.recordClassName);
-          recordToDelete.id = record.id;
-          await recordToDelete.destroy();
-          deleted++;
-          dispatch({ type: "DELETE_PROGRESS_UPDATE", payload: deleted });
-        }
+        await DataStoreService.deleteRecords(
+          state.recordClassName,
+          state.records,
+          (progress) => {
+            dispatch({ type: "DELETE_PROGRESS_UPDATE", payload: progress });
+          }
+        );
 
         dispatch({ type: "DELETE_SUCCESS" });
       } catch (err) {
@@ -198,24 +246,13 @@ export default function DataStore() {
         // After deleting, we can start the upload process
         dispatch({ type: "UPDATE_START", payload: recordsData.length });
 
-        let completed = 0;
-        const DataStore = Parse.Object.extend(state.recordClassName);
-        for (const recordData of recordsData) {
-          const record = new DataStore();
-          Object.entries(recordData).forEach(([key, value]) => {
-            if (key === "id") {
-              record.set("ID", value);
-            } else {
-              record.set(key, value);
-            }
-          });
-          await record.save();
-          completed++;
-          dispatch({
-            type: "UPLOAD_PROGRESS_UPDATE",
-            payload: completed,
-          });
-        }
+        await DataStoreService.uploadRecords(
+          state.recordClassName,
+          recordsData,
+          (progress) => {
+            dispatch({ type: "UPLOAD_PROGRESS_UPDATE", payload: progress });
+          }
+        );
 
         dispatch({ type: "UPDATE_SUCCESS", payload: recordsData });
       } catch (err) {
