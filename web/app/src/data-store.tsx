@@ -1,4 +1,3 @@
-// src/components/DataStore.tsx
 import { useEffect, useReducer, ChangeEvent } from "react";
 import Parse, { RECORD_CLASS_NAME, RECORD_PROPERTIES } from "./parse";
 import Papa from "papaparse";
