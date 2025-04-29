@@ -68,10 +68,12 @@ function reducer(state: State, action: Action): State {
     case "FETCH_START":
       return { ...state, status: "loading", error: null };
     case "FETCH_SUCCESS":
+      console.log("Fetch success", action.payload);
       return { ...state, status: "idle", count: action.payload };
     case "FETCH_ERROR":
       return { ...state, status: "error", error: action.payload };
     case "UPLOAD_START":
+      console.log("Upload started", state);
       return {
         ...state,
         status: "updating",
@@ -96,7 +98,7 @@ function reducer(state: State, action: Action): State {
     case "DELETE_ERROR":
       return { ...state, status: "error", error: action.payload };
     case "DELETE_SUCCESS":
-      return { ...state, status: "idle", count: 0 };
+      return { ...state, status: "idle" };
     default:
       return state;
   }
