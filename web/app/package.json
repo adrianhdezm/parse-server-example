@@ -19,7 +19,7 @@
     "clsx": "^2.1.1",
     "lucide-react": "^0.503.0",
     "papaparse": "^5.5.2",
-    "parse": "^6.1.1",
+    "parse": "^7.0.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "tailwind-merge": "^3.2.0"
