@@ -77,4 +77,5 @@ services:
       - PARSE_DASHBOARD_APP_NAME=${APP_NAME}
       - PARSE_DASHBOARD_USER_ID=${PARSE_DASHBOARD_USER}
       - PARSE_DASHBOARD_USER_PASSWORD=${PARSE_DASHBOARD_PASSWORD}
+      - FILES_DIR=/parse-server/files
     restart: always

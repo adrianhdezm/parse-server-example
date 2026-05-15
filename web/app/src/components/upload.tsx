@@ -213,110 +213,108 @@ export function Upload() {
       : 0;
 
   return (
-    <div className="flex justify-center items-center min-h-screen p-4 bg-gradient-to-b from-gray-50 to-gray-100">
-      <Card className="w-full max-w-md shadow-lg border-opacity-50">
-        <CardHeader className="pb-2">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <Database className="h-5 w-5 text-primary" />
-              <CardTitle>{TEXT.managerTitle(state.recordClassName)}</CardTitle>
-            </div>
-            <Button onClick={handleLogout}>{TEXT.logout}</Button>
+    <Card className="w-full max-w-md shadow-lg border-opacity-50">
+      <CardHeader className="pb-2">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Database className="h-5 w-5 text-primary" />
+            <CardTitle>{TEXT.managerTitle(state.recordClassName)}</CardTitle>
           </div>
-        </CardHeader>
+          <Button onClick={handleLogout}>{TEXT.logout}</Button>
+        </div>
+      </CardHeader>
 
-        <CardContent className="space-y-4 pt-2">
-          {/* Status Display */}
-          <div className="flex items-center justify-center h-24 rounded-lg bg-muted/50 border">
-            {isLoading ? (
-              <div className="flex flex-col items-center gap-2">
-                <RefreshCw className="h-6 w-6 animate-spin text-muted-foreground" />
-                <p className="text-sm text-muted-foreground">
-                  {TEXT.loadingData}
-                </p>
-              </div>
-            ) : state.count !== null ? (
-              <div className="flex flex-col items-center">
-                <span className="text-3xl font-bold">{state.count}</span>
-                <span className="text-sm text-muted-foreground">
-                  {TEXT.totalObjects(state.recordClassName)}
-                </span>
-              </div>
-            ) : state.error ? (
-              <div className="flex flex-col items-center gap-1 text-destructive">
-                <AlertCircle className="h-6 w-6" />
-                <span className="text-sm">{TEXT.failedToLoadData}</span>
-              </div>
-            ) : null}
-          </div>
-
-          {/* Upload Progress */}
-          {isUpdating && (
-            <div className="space-y-2">
-              <div className="flex justify-between text-sm">
-                <span>{TEXT.uploadingRecords}</span>
-                <span>
-                  {TEXT.progressLabel(state.uploadProgress, state.uploadTotal)}
-                </span>
-              </div>
-              <Progress value={progressPercentage} className="h-2" />
+      <CardContent className="space-y-4 pt-2">
+        {/* Status Display */}
+        <div className="flex items-center justify-center h-24 rounded-lg bg-muted/50 border">
+          {isLoading ? (
+            <div className="flex flex-col items-center gap-2">
+              <RefreshCw className="h-6 w-6 animate-spin text-muted-foreground" />
+              <p className="text-sm text-muted-foreground">
+                {TEXT.loadingData}
+              </p>
             </div>
-          )}
+          ) : state.count !== null ? (
+            <div className="flex flex-col items-center">
+              <span className="text-3xl font-bold">{state.count}</span>
+              <span className="text-sm text-muted-foreground">
+                {TEXT.totalObjects(state.recordClassName)}
+              </span>
+            </div>
+          ) : state.error ? (
+            <div className="flex flex-col items-center gap-1 text-destructive">
+              <AlertCircle className="h-6 w-6" />
+              <span className="text-sm">{TEXT.failedToLoadData}</span>
+            </div>
+          ) : null}
+        </div>
 
-          {/* Success Message */}
-          {state.status === "success" && (
-            <Alert
-              variant="default"
-              className="bg-green-50 text-green-800 dark:bg-green-900/20 dark:text-green-400 border-green-200 dark:border-green-900"
+        {/* Upload Progress */}
+        {isUpdating && (
+          <div className="space-y-2">
+            <div className="flex justify-between text-sm">
+              <span>{TEXT.uploadingRecords}</span>
+              <span>
+                {TEXT.progressLabel(state.uploadProgress, state.uploadTotal)}
+              </span>
+            </div>
+            <Progress value={progressPercentage} className="h-2" />
+          </div>
+        )}
+
+        {/* Success Message */}
+        {state.status === "success" && (
+          <Alert
+            variant="default"
+            className="bg-green-50 text-green-800 dark:bg-green-900/20 dark:text-green-400 border-green-200 dark:border-green-900"
+          >
+            <CheckCircle className="h-4 w-4" />
+            <AlertTitle>{TEXT.uploadCompleteTitle}</AlertTitle>
+            <AlertDescription className="text-sm">
+              {state.previousCount !== null &&
+                TEXT.previousAndNewCount(state.previousCount, state.count!)}
+            </AlertDescription>
+          </Alert>
+        )}
+
+        {/* Error Message */}
+        {state.error && state.status === "error" && (
+          <Alert variant="destructive">
+            <AlertCircle className="h-4 w-4" />
+            <AlertTitle>{TEXT.errorTitle}</AlertTitle>
+            <AlertDescription className="text-sm">
+              {state.error}
+            </AlertDescription>
+          </Alert>
+        )}
+      </CardContent>
+
+      <CardFooter className="pt-2">
+        <div className="w-full">
+          <input
+            type="file"
+            accept=".csv"
+            onChange={handleFileUpload}
+            className="hidden"
+            id="file-upload"
+            disabled={isProcessing}
+          />
+          <Button className="w-full" disabled={isProcessing} asChild>
+            <label
+              htmlFor="file-upload"
+              className="flex items-center justify-center gap-2 cursor-pointer"
             >
-              <CheckCircle className="h-4 w-4" />
-              <AlertTitle>{TEXT.uploadCompleteTitle}</AlertTitle>
-              <AlertDescription className="text-sm">
-                {state.previousCount !== null &&
-                  TEXT.previousAndNewCount(state.previousCount, state.count!)}
-              </AlertDescription>
-            </Alert>
-          )}
-
-          {/* Error Message */}
-          {state.error && state.status === "error" && (
-            <Alert variant="destructive">
-              <AlertCircle className="h-4 w-4" />
-              <AlertTitle>{TEXT.errorTitle}</AlertTitle>
-              <AlertDescription className="text-sm">
-                {state.error}
-              </AlertDescription>
-            </Alert>
-          )}
-        </CardContent>
-
-        <CardFooter className="pt-2">
-          <div className="w-full">
-            <input
-              type="file"
-              accept=".csv"
-              onChange={handleFileUpload}
-              className="hidden"
-              id="file-upload"
-              disabled={isProcessing}
-            />
-            <Button className="w-full" disabled={isProcessing} asChild>
-              <label
-                htmlFor="file-upload"
-                className="flex items-center justify-center gap-2 cursor-pointer"
-              >
-                <FileUp className="h-4 w-4" />
-                {isUpdating ? TEXT.uploading : TEXT.uploadCsvFile}
-                {isDeleting && (
-                  <span className="ml-2">
-                    <RefreshCw className="h-3 w-3 animate-spin inline-block" />
-                  </span>
-                )}
-              </label>
-            </Button>
-          </div>
-        </CardFooter>
-      </Card>
-    </div>
+              <FileUp className="h-4 w-4" />
+              {isUpdating ? TEXT.uploading : TEXT.uploadCsvFile}
+              {isDeleting && (
+                <span className="ml-2">
+                  <RefreshCw className="h-3 w-3 animate-spin inline-block" />
+                </span>
+              )}
+            </label>
+          </Button>
+        </div>
+      </CardFooter>
+    </Card>
   );
 }

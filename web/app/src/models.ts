@@ -44,3 +44,9 @@ export interface DataStoreType {
   com2: string;
   com: string;
 }
+
+export type FileStoreRecord = Record<string, unknown> & {
+  id: string;
+  createdAt: string;
+  updatedAt: string;
+};
